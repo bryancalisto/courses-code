@@ -6,13 +6,13 @@ enum TokenType {
     RIGHT_PAREN,
     LEFT_BRACE,
     RIGHT_BRACE,
-    COMA,
+    COMMA,
     DOT,
     MINUS,
     PLUS,
     SEMICOLON,
     SLASH,
-    START,
+    STAR,
 
     // One or two character tokens
     BANG,
