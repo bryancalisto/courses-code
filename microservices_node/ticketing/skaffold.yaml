@@ -5,10 +5,12 @@ deploy:
     manifests:
       - ./infra/k8s/*
 build:
-  local:
-    push: false
+  # local:
+  #   push: false
+  googleCloudBuild:
+    projectId: crucial-module-336600
   artifacts:
-    - image: einecomadreja/auth
+    - image: us.gcr.io/crucial-module-336600/auth
       context: auth
       docker:
         dockerfile: Dockerfile
