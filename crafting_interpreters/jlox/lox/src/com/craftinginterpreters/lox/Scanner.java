@@ -77,10 +77,10 @@ public class Scanner {
             advance();
         }
 
-        String text = source.substring(start,current);
+        String text = source.substring(start, current);
         TokenType type = keywords.get(text);
 
-        if(type == null){
+        if (type == null) {
             type = IDENTIFIER;
         }
 
@@ -201,8 +201,11 @@ public class Scanner {
                 addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
-                if (match('/')) {
+                if (match('/')) { // Line comment
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) { // Block comment
+                    while (!isAtEnd() && !(peek() == '*' && peekNext() == '/')) advance();
+                    current += 2;
                 } else {
                     addToken(SLASH);
                 }
