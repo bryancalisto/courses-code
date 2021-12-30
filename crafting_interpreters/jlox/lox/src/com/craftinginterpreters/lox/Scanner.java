@@ -204,6 +204,13 @@ public class Scanner {
                 if (match('/')) { // Line comment
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else if (match('*')) { // Block comment
+                    while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) {
+                        if (peek() == '\n') {
+                            line++; // New lines can live within comments
+                        }
+                        advance();
+                    }
+
                     while (!isAtEnd() && !(peek() == '*' && peekNext() == '/')) advance();
                     current += 2;
                 } else {
