@@ -4,15 +4,7 @@ import { app } from '../../app';
 it('Responds with details about the current user', async () => {
   const email = 'test@test.com';
 
-  const authResponse = await request(app)
-    .post('/api/users/signup')
-    .send({
-      email,
-      password: 'password'
-    })
-    .expect(201);
-
-  const cookie = authResponse.get('Set-Cookie');
+  const cookie = await global.signin();
 
   const response = await request(app)
     .get('/api/users/currentuser')
@@ -21,4 +13,13 @@ it('Responds with details about the current user', async () => {
     .expect(200);
 
   expect(response.body.currentUser.email).toEqual(email);
+});
+
+it('Responds with null and not authenticated', async () => {
+  const response = await request(app)
+    .get('/api/users/currentuser')
+    .send()
+    .expect(200);
+
+  expect(response.body.currentUser).toEqual(null);
 });

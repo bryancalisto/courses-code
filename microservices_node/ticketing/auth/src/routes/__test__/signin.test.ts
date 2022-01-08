@@ -21,7 +21,7 @@ it('Fails when incorrect password is supplied', async () => {
     })
     .expect(201);
 
-  return request(app)
+  await request(app)
     .post(route)
     .send({
       email: 'test@test.com',
