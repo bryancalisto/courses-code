@@ -5,12 +5,24 @@ import java.util.List;
 import static com.craftinginterpreters.lox.TokenType.*;
 
 public class Parser {
+    private static class ParseError extends RuntimeException {
+    }
+
     private final List<Token> tokens;
     private int current = 0;
 
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
+    }
+
+    Expr parse(){
+        try{
+            return expression();
+        }
+        catch (ParseError error){
+            return null;
+        }
     }
 
     private Expr expression() {
@@ -109,23 +121,56 @@ public class Parser {
     }
 
     private Expr primary() {
-        if(match(FALSE)) return new Expr.Literal(false);
-        if(match(TRUE)) return new Expr.Literal(true);
-        if(match(NIL)) return new Expr.Literal(null);
+        if (match(FALSE)) return new Expr.Literal(false);
+        if (match(TRUE)) return new Expr.Literal(true);
+        if (match(NIL)) return new Expr.Literal(null);
 
-        if(match(NUMBER, STRING)){
+        if (match(NUMBER, STRING)) {
             return new Expr.Literal(previous().literal);
         }
 
-        if(match(LEFT_PAREN)){
+        if (match(LEFT_PAREN)) {
             Expr expr = expression();
-            consume(RIGHT_PAREN, "Expect ')' after expression");
+            consume(RIGHT_PAREN, "Expected ')' after expression");
             return new Expr.Grouping(expr);
         }
 
-        return null;
+        throw error(peek(), "Expected expression.");
     }
 
     private void consume(TokenType type, String message) {
+        if (check(type)) {
+            advance();
+            return;
+        }
+
+        throw error(peek(), message);
+    }
+
+    private ParseError error(Token token, String message) {
+        Lox.error(token, message);
+        return new ParseError();
+    }
+
+    private void synchronize() {
+        advance();
+
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) return;
+
+            switch (peek().type) {
+                case CLASS:
+                case FOR:
+                case FUN:
+                case IF:
+                case PRINT:
+                case RETURN:
+                case VAR:
+                case WHILE:
+                    return;
+            }
+        }
+
+        advance();
     }
 }
