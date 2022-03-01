@@ -6,6 +6,8 @@ declare global {
   var signin: () => string[]
 }
 
+jest.mock('../nats-wrapper');
+
 let mongo: MongoMemoryServer;
 
 jest.setTimeout(10000);
