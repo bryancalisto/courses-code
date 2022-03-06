@@ -3,10 +3,10 @@ import 'express-async-errors';
 import { NotFoundError, errorHandler, currentUser } from '@bcticketing/common';
 import cookieSession from 'cookie-session';
 
-import { createTicketRouter } from './routes/new';
-import { showTicketRouter } from './routes/show';
-import { indexTicketRouter } from './routes/index';
-import { updateTicketRouter } from './routes/update';
+import { newOrderRouter } from './routes/new';
+import { showOrderRouter } from './routes/show';
+import { indexOrderRouter } from './routes/index';
+import { deleteOrderRouter } from './routes/delete';
 
 
 const app = express();
@@ -19,10 +19,10 @@ app.use(cookieSession({
 
 app.use(currentUser);
 
-app.use(createTicketRouter);
-app.use(showTicketRouter);
-app.use(indexTicketRouter);
-app.use(updateTicketRouter);
+app.use(newOrderRouter);
+app.use(showOrderRouter);
+app.use(indexOrderRouter);
+app.use(deleteOrderRouter);
 
 app.all('*', async () => {
   throw new NotFoundError();
