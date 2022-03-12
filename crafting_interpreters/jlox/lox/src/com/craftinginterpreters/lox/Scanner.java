@@ -61,7 +61,8 @@ public class Scanner {
         if (isAtEnd()) {
             return '\0';
         }
-        return source.charAt(current);
+        char c= source.charAt(current);
+        return c;
     }
 
     private char peekNext() {
@@ -204,15 +205,18 @@ public class Scanner {
                 if (match('/')) { // Line comment
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else if (match('*')) { // Block comment
-                    while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) {
+                    while (!isAtEnd()) {
                         if (peek() == '\n') {
                             line++; // New lines can live within comments
                         }
+
+                        if (peek() == '*' && peekNext() == '/') {
+                            current += 2;
+                            break;
+                        }
+
                         advance();
                     }
-
-                    while (!isAtEnd() && !(peek() == '*' && peekNext() == '/')) advance();
-                    current += 2;
                 } else {
                     addToken(SLASH);
                 }
