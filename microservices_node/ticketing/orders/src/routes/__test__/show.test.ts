@@ -50,7 +50,4 @@ it('returns error if one user tries to get an order from another user', async ()
     .set('Cookie', globalThis.signin())
     .send()
     .expect(401);
-
-
-  expect(fetchedOrder.id).toEqual(order.id);
 });
