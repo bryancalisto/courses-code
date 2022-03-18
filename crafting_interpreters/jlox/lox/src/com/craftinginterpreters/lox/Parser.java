@@ -16,17 +16,32 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    Expr parse(){
-        try{
+    Expr parse() {
+        try {
             return expression();
-        }
-        catch (ParseError error){
+        } catch (ParseError error) {
             return null;
         }
     }
 
     private Expr expression() {
-        return equality();
+//         TODO - Apply C expression evaluation with commas if expressions are not arguments of a function
+//        if(peek().type == IDENTIFIER && peekNext().type == LEFT_PAREN){
+//
+//        }
+
+        if (peek().type == COMMA) {
+            throw error(peek(), "Expected expression before.");
+        }
+
+        Expr left = equality();
+
+        if (peek().type == COMMA) {
+            advance();
+            return expression();
+        }
+
+        return left;
     }
 
     private Expr equality() {
