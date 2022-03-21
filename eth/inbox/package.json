@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@truffle/hdwallet-provider": "^2.0.1",
-    "solc": "^0.4.17"
+    "solc": "^0.8.9"
   },
   "devDependencies": {
     "dotenv": "^16.0.0",
