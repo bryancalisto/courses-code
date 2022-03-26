@@ -9,37 +9,37 @@ public class Interpreter implements Expr.Visitor<Object> {
 
         switch (operator.type) {
             // Comparison
-            case GREATER -> {
+            case GREATER: {
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left > (double) right;
             }
-            case GREATER_EQUAL -> {
+            case GREATER_EQUAL: {
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left >= (double) right;
             }
-            case LESS -> {
+            case LESS: {
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left < (double) right;
             }
-            case LESS_EQUAL -> {
+            case LESS_EQUAL: {
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left <= (double) right;
             }
             // Equality
-            case BANG_EQUAL -> {
+            case BANG_EQUAL: {
                 return !isEqual(left, right);
             }
-            case EQUAL_EQUAL -> {
+            case EQUAL_EQUAL: {
                 return isEqual(left, right);
             }
             // Arithmetic
-            case MINUS -> {
+            case MINUS: {
                 checkNumberOperand(expr.operator, right);
                 return (double) left - (double) right;
             }
-            case PLUS -> {
-                if (left instanceof String && right instanceof String) {
-                    return (String) left + (String) right;
+            case PLUS: {
+                if (left instanceof String) {
+                    return (String) left + right;
                 }
 
                 if (left instanceof Double && right instanceof Double) {
@@ -48,11 +48,11 @@ public class Interpreter implements Expr.Visitor<Object> {
 
                 throw new RuntimeError(operator, "Operands must be two numbers or two strings.");
             }
-            case SLASH -> {
+            case SLASH: {
                 checkNumberOperands(operator, left, right);
                 return (double) left / (double) right;
             }
-            case STAR -> {
+            case STAR: {
                 checkNumberOperands(operator, left, right);
                 return (double) left * (double) right;
             }
@@ -93,10 +93,10 @@ public class Interpreter implements Expr.Visitor<Object> {
         Object right = evaluate(expr);
 
         switch (expr.operator.type) {
-            case BANG -> {
+            case BANG: {
                 return !isTruthy(right);
             }
-            case MINUS -> {
+            case MINUS: {
                 return -(float) right;
             }
         }
@@ -112,5 +112,30 @@ public class Interpreter implements Expr.Visitor<Object> {
 
     private Object evaluate(Expr expr) {
         return expr.accept(this);
+    }
+
+    void interpret(Expr expression) {
+        try {
+            Object value = evaluate(expression);
+            System.out.println("[DEBUG] >>> " + stringify(value));
+        } catch (RuntimeError e) {
+            Lox.runtimeError(e);
+        }
+    }
+
+    private String stringify(Object value) {
+        if (value == null) return "nil";
+
+        if (value instanceof Double) {
+            String text = value.toString();
+
+            if (text.endsWith(".0")) {
+                text = text.substring(0, text.length() - 2);
+            }
+
+            return text;
+        }
+
+        return value.toString();
     }
 }

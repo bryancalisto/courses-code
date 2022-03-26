@@ -11,7 +11,9 @@ import java.util.List;
 import static com.craftinginterpreters.lox.TokenType.EOF;
 
 public class Lox {
+    private static final Interpreter interpreter = new Interpreter();
     static boolean hadError = false;
+    static boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -29,6 +31,9 @@ public class Lox {
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) {
             System.exit(65);
+        }
+        if (hadRuntimeError) {
+            System.exit(70);
         }
     }
 
@@ -53,9 +58,10 @@ public class Lox {
         Parser parser = new Parser(tokens);
         Expr expression = parser.parse();
 
-        if(hadError) return;
+        if (hadError) return;
 
-        System.out.println(new AstPrinter().print(expression));
+//        System.out.println(new AstPrinter().print(expression));
+        interpreter.interpret(expression);
     }
 
     static void error(int line, String message) {
@@ -73,5 +79,10 @@ public class Lox {
         } else {
             report(token.line, " at '" + token.lexeme + "'", message);
         }
+    }
+
+    static void runtimeError(RuntimeError e) {
+        System.out.println(e.getMessage() + "\n[line " + e.token.line + "]");
+        hadRuntimeError = true;
     }
 }
