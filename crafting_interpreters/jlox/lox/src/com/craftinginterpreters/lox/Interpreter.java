@@ -3,6 +3,8 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    private final Environment environment = new Environment();
+
     @Override
     public Object visitBinaryExpr(Expr.Binary expr) {
         Object left = evaluate(expr.left);
@@ -91,11 +93,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Object visitVariableExpr(Expr.Variable expr) {
-        return null;
-    }
-
-    @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
         Object right = evaluate(expr);
 
@@ -123,7 +120,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     void interpret(List<Stmt> statements) {
         try {
-            for(Stmt statement: statements){
+            for (Stmt statement : statements) {
                 execute(statement);
             }
         } catch (RuntimeError e) {
@@ -159,13 +156,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+
+        if(stmt.initializer != null){
+            value = evaluate(stmt.initializer);
+        }
+
+        environment.define(stmt.name.lexeme, value);
         return null;
+    }
+
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return environment.get(expr.name);
     }
 
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
         Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
+        System.out.println(value);
         return null;
     }
 }
