@@ -1,7 +1,5 @@
 package com.craftinginterpreters.lox;
 
-import java.util.Stack;
-
 public class AstPrinter implements Expr.Visitor<String> {
 
     public String print(Expr expr) {
@@ -74,6 +72,11 @@ public class AstPrinter implements Expr.Visitor<String> {
     public String visitLiteralExpr(Expr.Literal expr) {
         if (expr.value == null) return "nil";
         return expr.value.toString();
+    }
+
+    @Override
+    public String visitVariableExpr(Expr.Variable expr) {
+        return null;
     }
 
     @Override
