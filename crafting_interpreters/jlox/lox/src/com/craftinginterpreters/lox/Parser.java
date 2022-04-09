@@ -20,7 +20,7 @@ public class Parser {
     List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
 
-        while(!isAtEnd()){
+        while (!isAtEnd()) {
             statements.add(declaration());
         }
 
@@ -28,18 +28,17 @@ public class Parser {
     }
 
     private Stmt declaration() {
-        try{
-            if(match(VAR)) return varDeclaration();
+        try {
+            if (match(VAR)) return varDeclaration();
             return statement();
-        }
-        catch (ParseError error){
+        } catch (ParseError error) {
             synchronize();
             return null;
         }
     }
 
     private Stmt statement() {
-        if(match(PRINT)) return printStatement();
+        if (match(PRINT)) return printStatement();
 
         return expressionStatement();
     }
@@ -55,7 +54,7 @@ public class Parser {
 
         Expr initializer = null;
 
-        if(match(EQUAL)){
+        if (match(EQUAL)) {
             initializer = expression();
         }
 
@@ -80,7 +79,7 @@ public class Parser {
             throw error(peek(), "Expected expression before.");
         }
 
-        Expr left = equality();
+        Expr left = assignment();
 
         if (peek().type == COMMA) {
             advance();
@@ -88,6 +87,24 @@ public class Parser {
         }
 
         return left;
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target");
+        }
+
+        return expr;
     }
 
     private Expr equality() {
@@ -190,7 +207,7 @@ public class Parser {
             return new Expr.Literal(previous().literal);
         }
 
-        if(match(IDENTIFIER)) {
+        if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());
         }
 
