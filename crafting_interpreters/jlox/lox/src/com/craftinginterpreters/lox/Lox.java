@@ -1,8 +1,6 @@
 package com.craftinginterpreters.lox;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -37,17 +35,62 @@ public class Lox {
         }
     }
 
+    static void processOneLiner(BufferedReader reader) throws IOException {
+//        System.out.print("> ");
+//        String line = reader.readLine();
+//        if (line == null) {
+//            break;
+//        }
+//        run(line);
+//        hadError = false;
+    }
+
+    private static void deleteLine() {
+//        System.out.print("\033[2K");
+        System.out.print("\b");
+    }
+
     private static void runPrompt() throws IOException {
         InputStreamReader input = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(input);
+        boolean readingBlock = false;
+        StringBuilder statement = new StringBuilder();
 
         for (; ; ) {
-            System.out.print("> ");
+            if (readingBlock) {
+                System.out.print("... ");
+            } else {
+                System.out.print("> ");
+            }
+
             String line = reader.readLine();
+
             if (line == null) {
                 break;
             }
-            run(line);
+
+            if (line.contains("{")) {
+                readingBlock = true;
+                statement.append(line);
+            }
+
+            if (!readingBlock) {
+                run(line);
+            } else {
+                statement.append(line);
+            }
+
+            if (line.contains("}")) {
+                statement.append(line);
+                String stmt = statement.toString();
+                run(stmt);
+                readingBlock = false;
+                statement.setLength(0);
+            }
+            if (line.contains("\n")) {
+                System.out.println("LINEA");
+            }
+
             hadError = false;
         }
     }
