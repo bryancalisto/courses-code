@@ -42,25 +42,19 @@ const ticketSchema = new mongoose.Schema({
 ticketSchema.set('versionKey', 'version');
 ticketSchema.plugin(updateIfCurrentPlugin);
 
-ticketSchema.statics.findByEvent = async (event: { id: string, version: number }) => {
-  return await Ticket.findOne({
+ticketSchema.statics.findByEvent = (event: { id: string, version: number }) => {
+  return Ticket.findOne({
     _id: event.id,
     version: event.version - 1
   });
 }
 
 ticketSchema.statics.build = (attrs: TicketAttrs) => {
-  const data = {
+  return new Ticket({
     _id: attrs.id,
     title: attrs.title,
     price: attrs.price
-  };
-
-  if (attrs.id) {
-    delete data._id;
-  }
-
-  return new Ticket(data);
+  });
 }
 
 ticketSchema.methods.isReserved = async function () {

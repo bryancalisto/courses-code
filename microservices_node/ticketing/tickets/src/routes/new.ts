@@ -31,7 +31,7 @@ router.post('/api/tickets', [
         version: newTicket.version
       });
 
-      res.status(201).send(newTicket.toJSON());
+      res.status(201).send(newTicket);
     } catch (e) {
     }
   });
