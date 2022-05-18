@@ -118,7 +118,7 @@ public class Parser {
     }
 
     private Expr assignment() {
-        Expr expr = equality();
+        Expr expr = or();
 
         if (match(EQUAL)) {
             Token equals = previous();
@@ -133,6 +133,30 @@ public class Parser {
         }
 
         return expr;
+    }
+
+    private Expr or(){
+        Expr left = and();
+
+        while(match(OR)){
+            Token operator = previous();
+            Expr right = and();
+            left = new Expr.Logical(left, operator, right);
+        }
+
+        return left;
+    }
+
+    private Expr and() {
+        Expr left = equality();
+
+        while (match(AND)){
+            Token operator = previous();
+            Expr right = equality();
+            left = new Expr.Logical(left, operator, right);
+        }
+
+        return left;
     }
 
     private Expr equality() {
