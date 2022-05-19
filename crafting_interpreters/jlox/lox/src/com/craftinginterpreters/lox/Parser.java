@@ -40,15 +40,24 @@ public class Parser {
     private Stmt statement() {
         if(match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
+        if(match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
     }
 
+    private Stmt whileStatement() {
+        consume(LEFT_PAREN, "Expected '(' after while");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expected ')' after condition");
+        Stmt body = statement();
+        return new Stmt.While(condition, body);
+    }
+
     private Stmt ifStatement() {
         consume(LEFT_PAREN, "Expect '(' after 'if'");
         Expr condition = expression();
-        consume(RIGHT_PAREN, "Expect ')' after 'if'condition");
+        consume(RIGHT_PAREN, "Expect ')' after 'if' condition");
 
         Stmt thenBranch = statement();
         Stmt elseBranch = null;
