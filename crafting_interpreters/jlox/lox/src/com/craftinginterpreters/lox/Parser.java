@@ -1,6 +1,7 @@
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -38,12 +39,58 @@ public class Parser {
     }
 
     private Stmt statement() {
-        if(match(IF)) return ifStatement();
+        if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
-        if(match(WHILE)) return whileStatement();
+        if (match(FOR)) return forStatement();
+        if (match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    private Stmt forStatement() {
+        consume(LEFT_PAREN, "Expected '(' after for");
+
+        Stmt initializer;
+        if (match(VAR)) {
+            initializer = varDeclaration();
+        } else if (match(SEMICOLON)) {
+            initializer = null;
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!match(SEMICOLON)) {
+            condition = expression();
+        }
+
+        consume(SEMICOLON, "Expected ';' after loop condition");
+
+        Expr increment = null;
+        if (!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+
+        consume(RIGHT_PAREN, "Expected ')' after for clause");
+
+        Stmt body = statement();
+
+        if (increment != null) {
+            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+        }
+
+        if (condition == null) {
+            condition = new Expr.Literal(true);
+        }
+
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
     }
 
     private Stmt whileStatement() {
@@ -62,7 +109,7 @@ public class Parser {
         Stmt thenBranch = statement();
         Stmt elseBranch = null;
 
-        if(match(ELSE)){
+        if (match(ELSE)) {
             elseBranch = statement();
         }
 
@@ -98,7 +145,7 @@ public class Parser {
     private List<Stmt> block() {
         List<Stmt> statements = new ArrayList<Stmt>();
 
-        while(!check(RIGHT_BRACE) && !isAtEnd()){
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
             statements.add(declaration());
         }
 
@@ -144,10 +191,10 @@ public class Parser {
         return expr;
     }
 
-    private Expr or(){
+    private Expr or() {
         Expr left = and();
 
-        while(match(OR)){
+        while (match(OR)) {
             Token operator = previous();
             Expr right = and();
             left = new Expr.Logical(left, operator, right);
@@ -159,7 +206,7 @@ public class Parser {
     private Expr and() {
         Expr left = equality();
 
-        while (match(AND)){
+        while (match(AND)) {
             Token operator = previous();
             Expr right = equality();
             left = new Expr.Logical(left, operator, right);
