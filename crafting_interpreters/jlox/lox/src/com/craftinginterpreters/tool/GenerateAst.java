@@ -8,7 +8,7 @@ import java.util.List;
 
 public class GenerateAst {
     public static void main(String[] args) {
-        if(args.length != 1){
+        if (args.length != 1) {
             System.err.println("Usage: generate_ast <output_directory>");
             System.exit(64);
         }
@@ -31,11 +31,11 @@ public class GenerateAst {
                     "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                     "Expression : Expr expression",
                     "While      : Expr condition, Stmt body",
+                    "Break      :",
                     "Var        : Token name, Expr initializer",
                     "Print      : Expr expression"
             ));
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             System.err.println("ERROR: " + e);
         }
     }
@@ -56,8 +56,14 @@ public class GenerateAst {
 
         // The AST classes.
         for (String type : types) {
-            String className = type.split(":")[0].trim();
-            String fields = type.split(":")[1].trim();
+            String[] typeComponents = type.split(":");
+            String className = typeComponents[0].trim();
+            String fields = "";
+
+            if (typeComponents.length > 1) {
+                fields = type.split(":")[1].trim();
+            }
+
             defineType(writer, baseName, className, fields);
         }
 
@@ -69,10 +75,10 @@ public class GenerateAst {
         writer.close();
     }
 
-    private static void defineVisitor(PrintWriter writer, String baseName, List<String> types){
+    private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
         writer.println("    interface Visitor<R> {");
 
-        for(String type: types){
+        for (String type : types) {
             String typeName = type.split(":")[0].trim();
             writer.println("    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
         }
@@ -89,11 +95,14 @@ public class GenerateAst {
         // Constructor.
         writer.println("    " + className + "(" + fieldList + ") {");
 
-        // Store parameters in fields.
-        String[] fields = fieldList.split(", ");
-        for (String field : fields) {
-            String name = field.split(" ")[1];
-            writer.println("      this." + name + " = " + name + ";");
+        // Store parameters in fields if parameters exist
+        String[] fields = fieldList.isBlank() ? null : fieldList.split(", ");
+
+        if (fields != null) {
+            for (String field : fields) {
+                String name = field.split(" ")[1];
+                writer.println("      this." + name + " = " + name + ";");
+            }
         }
 
         writer.println("    }");
@@ -103,12 +112,16 @@ public class GenerateAst {
         writer.println("    <R> R accept(Visitor<R> visitor) {");
         writer.println("        return visitor.visit" + className + baseName + "(this);");
         writer.println("    }");
+        writer.println();
 
         // Fields.
-        writer.println();
-        for (String field : fields) {
-            writer.println("    final " + field + ";");
+
+        if (fields != null) {
+            for (String field : fields) {
+                writer.println("    final " + field + ";");
+            }
         }
 
         writer.println("  }");
-    }}
+    }
+}

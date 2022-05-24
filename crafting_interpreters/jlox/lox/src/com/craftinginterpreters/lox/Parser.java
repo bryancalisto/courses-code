@@ -12,6 +12,7 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+    private int loopDepth = 0;
 
 
     public Parser(List<Token> tokens) {
@@ -42,6 +43,7 @@ public class Parser {
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
         if (match(FOR)) return forStatement();
+        if (match(BREAK)) return breakStatement();
         if (match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
@@ -49,56 +51,73 @@ public class Parser {
     }
 
     private Stmt forStatement() {
-        consume(LEFT_PAREN, "Expected '(' after for");
+        try {
+            loopDepth++;
+            consume(LEFT_PAREN, "Expected '(' after for");
 
-        Stmt initializer;
-        if (match(VAR)) {
-            initializer = varDeclaration();
-        } else if (match(SEMICOLON)) {
-            initializer = null;
-        } else {
-            initializer = expressionStatement();
+            Stmt initializer;
+            if (match(VAR)) {
+                initializer = varDeclaration();
+            } else if (match(SEMICOLON)) {
+                initializer = null;
+            } else {
+                initializer = expressionStatement();
+            }
+
+            Expr condition = null;
+            if (!match(SEMICOLON)) {
+                condition = expression();
+            }
+
+            consume(SEMICOLON, "Expected ';' after loop condition");
+
+            Expr increment = null;
+            if (!check(RIGHT_PAREN)) {
+                increment = expression();
+            }
+
+            consume(RIGHT_PAREN, "Expected ')' after for clause");
+
+            Stmt body = statement();
+
+            if (increment != null) {
+                body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+            }
+
+            if (condition == null) {
+                condition = new Expr.Literal(true);
+            }
+
+            body = new Stmt.While(condition, body);
+
+            if (initializer != null) {
+                body = new Stmt.Block(Arrays.asList(initializer, body));
+            }
+            return body;
+        } finally {
+            loopDepth--;
         }
-
-        Expr condition = null;
-        if (!match(SEMICOLON)) {
-            condition = expression();
-        }
-
-        consume(SEMICOLON, "Expected ';' after loop condition");
-
-        Expr increment = null;
-        if (!check(RIGHT_PAREN)) {
-            increment = expression();
-        }
-
-        consume(RIGHT_PAREN, "Expected ')' after for clause");
-
-        Stmt body = statement();
-
-        if (increment != null) {
-            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
-        }
-
-        if (condition == null) {
-            condition = new Expr.Literal(true);
-        }
-
-        body = new Stmt.While(condition, body);
-
-        if (initializer != null) {
-            body = new Stmt.Block(Arrays.asList(initializer, body));
-        }
-
-        return body;
     }
 
     private Stmt whileStatement() {
-        consume(LEFT_PAREN, "Expected '(' after while");
-        Expr condition = expression();
-        consume(RIGHT_PAREN, "Expected ')' after condition");
-        Stmt body = statement();
-        return new Stmt.While(condition, body);
+        try {
+            loopDepth++;
+            consume(LEFT_PAREN, "Expected '(' after while");
+            Expr condition = expression();
+            consume(RIGHT_PAREN, "Expected ')' after condition");
+            Stmt body = statement();
+            return new Stmt.While(condition, body);
+        } finally {
+            loopDepth--;
+        }
+    }
+
+    private Stmt breakStatement() {
+        if (loopDepth == 0) {
+            throw error(previous(), "'break' should be used within a loop");
+        }
+        consume(SEMICOLON, "Expected ';' after break");
+        return new Stmt.Break();
     }
 
     private Stmt ifStatement() {
@@ -143,7 +162,7 @@ public class Parser {
     }
 
     private List<Stmt> block() {
-        List<Stmt> statements = new ArrayList<Stmt>();
+        ArrayList statements = new ArrayList();
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
             statements.add(declaration());
@@ -185,7 +204,7 @@ public class Parser {
                 return new Expr.Assign(name, value);
             }
 
-            error(equals, "Invalid assignment target");
+            throw error(equals, "Invalid assignment target");
         }
 
         return expr;
