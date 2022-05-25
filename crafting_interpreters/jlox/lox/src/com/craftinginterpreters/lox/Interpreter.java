@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
@@ -190,12 +191,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
-        try{
-            while(isTruthy(evaluate(stmt.condition))){
+        try {
+            while (isTruthy(evaluate(stmt.condition))) {
                 execute(stmt.body);
             }
+        } catch (BreakException e) {
         }
-        catch (BreakException e){}
         return null;
     }
 
@@ -219,6 +220,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         return environment.get(expr.name);
+    }
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = evaluate(expr.callee);
+        List<Object> args = new ArrayList<>();
+
+        for (Expr arg : expr.arguments) {
+            args.add(evaluate(arg));
+        }
+
+        if (!(callee instanceof LoxCallable)) {
+            throw new RuntimeError(expr.parentheses, "Can only call functions and classes");
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+
+        if (function.arity() != args.size()) {
+            throw new RuntimeError(expr.parentheses, "Expected " + function.arity() + " arguments, but found " + args.size() + " amount ");
+        }
+        return function.call(this, args);
     }
 
     @Override
@@ -247,4 +269,5 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 }
 
-class BreakException extends RuntimeException{}
+class BreakException extends RuntimeException {
+}

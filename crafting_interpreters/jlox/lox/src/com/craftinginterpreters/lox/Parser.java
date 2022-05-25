@@ -322,7 +322,35 @@ public class Parser {
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expr call() {
+        Expr expr = primary();
+        List<Expr> arguments;
+
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                arguments = new ArrayList<>();
+
+                if (!match(RIGHT_PAREN)) {
+                    do {
+                        if(arguments.size() > 255){
+                            error(peek(), "Too many arguments (> 255)");
+                        }
+                        arguments.add(expression());
+                    } while (match(COMMA));
+                }
+
+                Token rightParenthesis = consume(RIGHT_PAREN, "Expected closing ')'");
+
+                expr = new Expr.Call(expr, rightParenthesis, arguments);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
     }
 
     private Expr primary() {

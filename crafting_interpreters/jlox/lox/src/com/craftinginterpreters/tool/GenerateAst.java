@@ -23,6 +23,7 @@ public class GenerateAst {
                     "Literal    : Object value",
                     "Logical    : Expr left, Token operator, Expr right",
                     "Variable   : Token name",
+                    "Call       : Expr callee, Token parentheses, List<Expr> arguments",
                     "Unary      : Token operator, Expr right"
             ));
 
