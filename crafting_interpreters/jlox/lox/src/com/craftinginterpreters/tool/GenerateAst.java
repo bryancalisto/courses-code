@@ -33,6 +33,7 @@ public class GenerateAst {
                     "Expression : Expr expression",
                     "While      : Expr condition, Stmt body",
                     "Break      :",
+                    "Function   : Token name, List<Token> parameters, List<Stmt> body",
                     "Var        : Token name, Expr initializer",
                     "Print      : Expr expression"
             ));

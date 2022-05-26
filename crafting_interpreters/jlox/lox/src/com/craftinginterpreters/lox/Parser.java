@@ -32,11 +32,34 @@ public class Parser {
     private Stmt declaration() {
         try {
             if (match(VAR)) return varDeclaration();
+            if (match(FUN)) return function("function");
             return statement();
         } catch (ParseError error) {
             synchronize();
             return null;
         }
+    }
+
+    private Stmt function(String kind) {
+        Token name = consume(IDENTIFIER, "Expected identifier");
+        List<Token> parameters = new ArrayList();
+
+        consume(LEFT_PAREN, "Expected '(' after " + kind + " name");
+
+        if (!match(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() > 255) {
+                    error(peek(), "Too many arguments (> 255)");
+                }
+                parameters.add(consume(IDENTIFIER, "Expected parameter"));
+            } while (match(COMMA));
+        }
+
+        consume(RIGHT_PAREN, "Expected ')' after " + kind + " arguments");
+        consume(LEFT_BRACE, "Expected '{' after " + kind + " (");
+        List<Stmt> body = block();
+
+        return new Stmt.Function(name, parameters, body);
     }
 
     private Stmt statement() {
@@ -335,7 +358,7 @@ public class Parser {
 
                 if (!match(RIGHT_PAREN)) {
                     do {
-                        if(arguments.size() > 255){
+                        if (arguments.size() > 255) {
                             error(peek(), "Too many arguments (> 255)");
                         }
                         arguments.add(expression());
