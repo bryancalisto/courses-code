@@ -28,11 +28,9 @@ const input = {
   }
 }
 
-const output = JSON.parse(solc.compile(JSON.stringify(input)));
+const output = JSON.parse(solc.compile(JSON.stringify(input))).contracts;
 
 fs.ensureDirSync(buildPath);
-
-console.log(output);
 
 for (let contract in output) {
   fs.outputJsonSync(path.resolve(buildPath, contract + '.json'), output[contract]);
