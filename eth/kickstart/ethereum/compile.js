@@ -7,16 +7,13 @@ const buildPath = path.resolve(__dirname, 'build');
 fs.removeSync(buildPath);
 
 const campaignPath = path.resolve(__dirname, 'contracts', 'campaign.sol');
-const campaignFactoryPath = path.resolve(__dirname, 'contracts', 'campaignFactory.sol');
+const campaignSource = fs.readFileSync(campaignPath, 'utf-8');
 
 const input = {
   language: 'Solidity',
   sources: {
     'campaign.sol': {
-      content: fs.readFileSync(campaignPath, 'utf-8')
-    },
-    'campaignFactory.sol': {
-      content: fs.readFileSync(campaignFactoryPath, 'utf-8')
+      content: campaignSource
     }
   },
   settings: {
@@ -28,7 +25,7 @@ const input = {
   }
 }
 
-const output = JSON.parse(solc.compile(JSON.stringify(input))).contracts;
+const output = JSON.parse(solc.compile(JSON.stringify(input))).contracts['campaign.sol'];
 
 fs.ensureDirSync(buildPath);
 
