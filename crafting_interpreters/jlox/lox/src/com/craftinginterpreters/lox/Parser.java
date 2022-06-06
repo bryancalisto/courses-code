@@ -46,7 +46,7 @@ public class Parser {
 
         consume(LEFT_PAREN, "Expected '(' after " + kind + " name");
 
-        if (!match(RIGHT_PAREN)) {
+        if (!check(RIGHT_PAREN)) {
             do {
                 if (parameters.size() > 255) {
                     error(peek(), "Too many arguments (> 255)");
@@ -56,7 +56,7 @@ public class Parser {
         }
 
         consume(RIGHT_PAREN, "Expected ')' after " + kind + " arguments");
-        consume(LEFT_BRACE, "Expected '{' after " + kind + " (");
+        consume(LEFT_BRACE, "Expected '{' before " + kind + " body");
         List<Stmt> body = block();
 
         return new Stmt.Function(name, parameters, body);
@@ -356,7 +356,7 @@ public class Parser {
             if (match(LEFT_PAREN)) {
                 arguments = new ArrayList<>();
 
-                if (!match(RIGHT_PAREN)) {
+                if (!check(RIGHT_PAREN)) {
                     do {
                         if (arguments.size() > 255) {
                             error(peek(), "Too many arguments (> 255)");

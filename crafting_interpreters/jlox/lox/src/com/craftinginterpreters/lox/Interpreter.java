@@ -7,7 +7,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     final Environment globals = new Environment();
     private Environment environment = globals;
 
-    Interpreter(){
+    Interpreter() {
         globals.define("clock", new LoxCallable() {
             @Override
             public int arity() {
@@ -16,7 +16,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
             @Override
             public Object call(Interpreter interpreter, List<Object> arguments) {
-                return (double)System.currentTimeMillis();
+                return (double) System.currentTimeMillis();
             }
         });
     }
@@ -168,7 +168,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         statement.accept(this);
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
+    public void executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
 
         try {
@@ -222,6 +222,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
+        LoxFunction function = new LoxFunction(stmt);
+        environment.define(stmt.name.lexeme, function);
         return null;
     }
 
