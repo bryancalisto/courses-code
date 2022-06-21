@@ -23,16 +23,19 @@ public class Parser {
         List<Stmt> statements = new ArrayList<>();
 
         while (!isAtEnd()) {
-            statements.add(declaration());
+            statements.add(declarationStmt());
         }
 
         return statements;
     }
 
-    private Stmt declaration() {
+    private Stmt declarationStmt() {
         try {
             if (match(VAR)) return varDeclaration();
-            if (match(FUN)) return function("function");
+            if (match(FUN)) {
+                return functionStmt("function");
+            }
+
             return statement();
         } catch (ParseError error) {
             synchronize();
@@ -40,7 +43,7 @@ public class Parser {
         }
     }
 
-    private Stmt function(String kind) {
+    private Stmt functionStmt(String kind) {
         Token name = consume(IDENTIFIER, "Expected identifier");
         List<Token> parameters = new ArrayList();
 
@@ -62,6 +65,32 @@ public class Parser {
         return new Stmt.Function(name, parameters, body);
     }
 
+    private Stmt anonymousFunctionStmt() {
+        int minName = 1;
+        int maxName = 10000;
+
+        Token name = new Token(IDENTIFIER, String.valueOf((int) (Math.random() * (minName - maxName + minName) + maxName)), null, peek().line);
+
+        List<Token> parameters = new ArrayList();
+
+        consume(LEFT_PAREN, "Expected '(' after 'fun'");
+
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() > 255) {
+                    error(peek(), "Too many arguments (> 255)");
+                }
+                parameters.add(consume(IDENTIFIER, "Expected parameter"));
+            } while (match(COMMA));
+        }
+
+        consume(RIGHT_PAREN, "Expected ')' after arguments");
+        consume(LEFT_BRACE, "Expected '{' before body");
+        List<Stmt> body = block();
+
+        return new Stmt.Function(name, parameters, body);
+    }
+
     private Stmt statement() {
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
@@ -78,7 +107,7 @@ public class Parser {
         Token keyword = previous();
         Expr value = null;
 
-        if(!check(SEMICOLON)){
+        if (!check(SEMICOLON)) {
             value = expression();
         }
 
@@ -201,7 +230,7 @@ public class Parser {
         ArrayList statements = new ArrayList();
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            statements.add(declaration());
+            statements.add(declarationStmt());
         }
 
         consume(RIGHT_BRACE, "Expected a '}' to end block");
@@ -209,23 +238,7 @@ public class Parser {
     }
 
     private Expr expression() {
-//         TODO - Apply C expression evaluation with commas if expressions are not arguments of a function
-//        if(peek().type == IDENTIFIER && peekNext().type == LEFT_PAREN){
-//
-//        }
-
-        if (peek().type == COMMA) {
-            throw error(peek(), "Expected expression before.");
-        }
-
-        Expr left = assignment();
-
-        if (peek().type == COMMA) {
-            advance();
-            return expression();
-        }
-
-        return left;
+        return assignment();
     }
 
     private Expr assignment() {
@@ -280,39 +293,6 @@ public class Parser {
         }
 
         return expr;
-    }
-
-    private boolean match(TokenType... types) {
-        for (TokenType type : types) {
-            if (check(type)) {
-                advance();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private Token advance() {
-        if (!isAtEnd()) current++;
-        return previous();
-    }
-
-    private boolean isAtEnd() {
-        return peek().type == EOF;
-    }
-
-    private Token previous() {
-        return tokens.get(current - 1);
-    }
-
-    private Token peek() {
-        return tokens.get(current);
-    }
-
-    private boolean check(TokenType type) {
-        if (isAtEnd()) return false;
-        return peek().type == type;
     }
 
     private Expr comparison() {
@@ -374,6 +354,7 @@ public class Parser {
                         if (arguments.size() > 255) {
                             error(peek(), "Too many arguments (> 255)");
                         }
+
                         arguments.add(expression());
                     } while (match(COMMA));
                 }
@@ -409,6 +390,39 @@ public class Parser {
         }
 
         throw error(peek(), "Expected expression.");
+    }
+
+    private boolean match(TokenType... types) {
+        for (TokenType type : types) {
+            if (check(type)) {
+                advance();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Token advance() {
+        if (!isAtEnd()) current++;
+        return previous();
+    }
+
+    private boolean isAtEnd() {
+        return peek().type == EOF;
+    }
+
+    private Token previous() {
+        return tokens.get(current - 1);
+    }
+
+    private Token peek() {
+        return tokens.get(current);
+    }
+
+    private boolean check(TokenType type) {
+        if (isAtEnd()) return false;
+        return peek().type == type;
     }
 
     private Token consume(TokenType type, String message) {
