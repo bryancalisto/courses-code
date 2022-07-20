@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+// Resolves the environments the variables should live in in terms of scope
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack();
 
-    Resolver(Interpreter interpreter) {
+    public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
     }
 
@@ -66,7 +67,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitIfStmt(Stmt.If stmt) {
         resolve(stmt.condition);
         resolve(stmt.thenBranch);
-        if(stmt.elseBranch != null) resolve(stmt.elseBranch);
+        if (stmt.elseBranch != null) resolve(stmt.elseBranch);
         return null;
     }
 
@@ -90,6 +91,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        return null;
+    }
+
+    @Override
     public Void visitBinaryExpr(Expr.Binary expr) {
         resolve(expr.left);
         resolve(expr.right);
@@ -100,7 +106,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitCallExpr(Expr.Call expr) {
         resolve(expr.callee);
 
-        for(Expr arg: expr.arguments) {
+        for (Expr arg : expr.arguments) {
             resolve(arg);
         }
 
@@ -131,17 +137,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
-    private void resolve(List<Stmt> statements) {
+    public void resolve(List<Stmt> statements) {
         for (Stmt stmt : statements) {
             resolve(stmt);
         }
     }
 
-    private void resolve(Stmt stmt) {
+    public void resolve(Stmt stmt) {
         stmt.accept(this);
     }
 
-    private void resolve(Expr expr) {
+    public void resolve(Expr expr) {
         expr.accept(this);
     }
 
@@ -175,7 +181,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void resolveFunction(Stmt.Function function) {
         beginScope();
 
-        for(Token param: function.parameters){
+        for (Token param : function.parameters) {
             declare(param);
             define(param);
         }
