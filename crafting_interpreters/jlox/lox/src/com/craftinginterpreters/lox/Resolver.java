@@ -5,10 +5,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+class VariableState {
+    public VariableState(Token token) {
+        this.token = token;
+    }
+
+    Token token;
+    boolean initialized = false;
+    boolean read = false;
+}
+
 // Resolves the environments the variables should live in in terms of scope
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
-    private final Stack<Map<String, Boolean>> scopes = new Stack();
+    private final Stack<Map<String, VariableState>> scopes = new Stack();
+    private FunctionType currentFunction = FunctionType.NONE;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -53,7 +64,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitFunctionStmt(Stmt.Function stmt) {
         declare(stmt.name);
         define(stmt.name);
-        resolveFunction(stmt);
+        resolveFunction(stmt, FunctionType.FUNCTION);
         return null;
     }
 
@@ -79,7 +90,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
-        resolve(stmt);
+        if (currentFunction == FunctionType.NONE) {
+            Lox.error(stmt.name, "Cannot return outside function");
+        }
+
+        if (stmt.value != null) {
+            resolve(stmt);
+        }
+
         return null;
     }
 
@@ -141,6 +159,15 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         for (Stmt stmt : statements) {
             resolve(stmt);
         }
+
+        // If a local variable was not used, report error
+        for (int i = 0; i < scopes.size(); i++) {
+            for (VariableState varState : scopes.get(i).values()) {
+                if (!varState.read) {
+                    Lox.error(varState.token, "Variable " + varState.token.lexeme + " is not being used. Remove it");
+                }
+            }
+        }
     }
 
     public void resolve(Stmt stmt) {
@@ -152,7 +179,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(new HashMap<String, Boolean>());
+        scopes.push(new HashMap<String, VariableState>());
     }
 
     private void endScope() {
@@ -161,24 +188,35 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.lexeme, false);
+
+        if (scopes.contains(name)) {
+            Lox.error(name, "Variable " + name.lexeme + " already exists in this scope");
+        }
+
+        scopes.peek().put(name.lexeme, new VariableState(name));
     }
 
     private void define(Token name) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.lexeme, true);
+
+        VariableState state = scopes.peek().get(name.lexeme);
+        state.initialized = true;
     }
 
     private void resolveLocal(Expr expr, Token name) {
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
+                // Change here the 'read' field of varState to true if the variable was read
                 interpreter.resolve(expr, scopes.size() - 1 - i);
                 return;
             }
         }
     }
 
-    private void resolveFunction(Stmt.Function function) {
+    private void resolveFunction(Stmt.Function function, FunctionType type) {
+        FunctionType enclosingFunction = currentFunction;
+        currentFunction = type;
+
         beginScope();
 
         for (Token param : function.parameters) {
@@ -189,5 +227,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         resolve(function.body);
 
         endScope();
+
+        currentFunction = enclosingFunction;
     }
+}
+
+enum FunctionType {
+    NONE,
+    FUNCTION
 }
