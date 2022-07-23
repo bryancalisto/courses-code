@@ -35,6 +35,7 @@ public class Parser {
             if (match(FUN)) {
                 return functionStmt("function");
             }
+            if (match(CLASS)) return classDeclaration();
 
             return statement();
         } catch (ParseError error) {
@@ -218,6 +219,21 @@ public class Parser {
         consume(SEMICOLON, "Expect ';' after variable declaration");
 
         return new Stmt.Var(name, initializer);
+    }
+
+    private Stmt classDeclaration() {
+        Token name = consume(IDENTIFIER, "Expected class name before { ");
+
+        consume(LEFT_BRACE, "Expected '{' after class name");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add((Stmt.Function) functionStmt("method"));
+        }
+
+        consume(RIGHT_BRACE, "Expected closing '}'");
+
+        return new Stmt.Class(name, methods);
     }
 
     private Stmt expressionStatement() {
