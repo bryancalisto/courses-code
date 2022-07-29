@@ -9,6 +9,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     final Environment globals = new Environment();
     private Environment environment = globals;
     private Map<Expr, Integer> locals = new HashMap<Expr, Integer>();
+    final private Map<String, LoxFunction> methods = new HashMap<>();
 
     Interpreter() {
         globals.define("clock", new LoxCallable() {
@@ -244,8 +245,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
         environment.define(stmt.name.lexeme, null);
-        LoxClass klass = new LoxClass(stmt.name.lexeme);
+
+        for (Stmt.Function method : stmt.methods) {
+            environment.define(method.name.lexeme, null);
+            LoxFunction function = new LoxFunction(method, environment);
+            methods.put(method.name.lexeme, function);
+        }
+
+        LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
         environment.assign(stmt.name, klass);
+
         return null;
     }
 
@@ -309,7 +318,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
-        if(object instanceof LoxInstance) {
+        if (object instanceof LoxInstance) {
             return ((LoxInstance) object).get(expr.name);
         }
         throw new RuntimeError(expr.name, "Only instances have properties");
@@ -319,7 +328,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitSetExpr(Expr.Set expr) {
         Object object = evaluate(expr.object);
 
-        if(!(object instanceof LoxInstance)) {
+        if (!(object instanceof LoxInstance)) {
             throw new RuntimeError(expr.name, "Only instances have fields");
         }
 

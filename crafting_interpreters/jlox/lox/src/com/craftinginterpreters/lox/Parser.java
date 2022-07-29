@@ -231,7 +231,7 @@ public class Parser {
             methods.add((Stmt.Function) functionStmt("method"));
         }
 
-        consume(RIGHT_BRACE, "Expected closing '}'");
+        consume(RIGHT_BRACE, "Expected closing '}' after class body");
 
         return new Stmt.Class(name, methods);
     }
@@ -383,7 +383,7 @@ public class Parser {
                 expr = new Expr.Call(expr, rightParenthesis, arguments);
             } else if (match(DOT)) {
                 Token name = consume(IDENTIFIER, "Expected property name after '.'");
-                return new Expr.Get(expr, name);
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }
