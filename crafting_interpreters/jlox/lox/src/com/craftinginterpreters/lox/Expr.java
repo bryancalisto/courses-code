@@ -11,6 +11,7 @@ abstract class Expr {
     R visitLogicalExpr(Logical expr);
     R visitVariableExpr(Variable expr);
     R visitCallExpr(Call expr);
+    R visitThisExpr(This expr);
     R visitGetExpr(Get expr);
     R visitSetExpr(Set expr);
     R visitUnaryExpr(Unary expr);
@@ -105,6 +106,17 @@ abstract class Expr {
     final Expr callee;
     final Token parentheses;
     final List<Expr> arguments;
+  }
+  static class This extends Expr {
+    This(Token token) {
+      this.token = token;
+    }
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitThisExpr(this);
+    }
+
+    final Token token;
   }
   static class Get extends Expr {
     Get(Expr object, Token name) {

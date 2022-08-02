@@ -405,6 +405,10 @@ public class Parser {
             return new Expr.Variable(previous());
         }
 
+        if(match(THIS)) {
+            return new Expr.This(previous());
+        }
+
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expected ')' after expression");

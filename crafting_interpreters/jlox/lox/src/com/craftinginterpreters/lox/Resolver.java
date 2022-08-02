@@ -72,11 +72,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitClassStmt(Stmt.Class stmt) {
         declare(stmt.name);
 
-        for(Stmt.Function method : stmt.methods) {
+        beginScope();
+
+        VariableState thisVariable = new VariableState(new Token(TokenType.THIS, "this", null, stmt.name.line));
+        thisVariable.initialized = true;
+        thisVariable.read = true;
+
+        scopes.peek().put("this", thisVariable);
+
+        for (Stmt.Function method : stmt.methods) {
             resolveFunction(method, FunctionType.METHOD);
         }
 
-        define(stmt.name);
+        endScope();
         return null;
     }
 
@@ -140,6 +148,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolve(arg);
         }
 
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpr(Expr.This expr) {
+        resolveLocal(expr, expr.token);
         return null;
     }
 
@@ -232,6 +246,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
                 // Change here the 'read' field of varState to true if the variable was read
+                scopes.get((i)).get(name.lexeme).read = true;
                 interpreter.resolve(expr, scopes.size() - 1 - i);
                 return;
             }
