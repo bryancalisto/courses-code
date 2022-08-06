@@ -20,6 +20,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, VariableState>> scopes = new Stack();
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -70,6 +71,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
         declare(stmt.name);
 
         beginScope();
@@ -81,10 +85,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         scopes.peek().put("this", thisVariable);
 
         for (Stmt.Function method : stmt.methods) {
-            resolveFunction(method, FunctionType.METHOD);
+            resolveFunction(method, method.name.lexeme.equals("init") ? FunctionType.INITIALIZER : FunctionType.METHOD);
         }
 
         endScope();
+
+        currentClass = enclosingClass;
         return null;
     }
 
@@ -115,6 +121,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(stmt.name, "Cannot return a value from initializer");
+            }
             resolve(stmt);
         }
 
@@ -153,6 +162,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitThisExpr(Expr.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.token, "'this' can only be used inside a class");
+        }
         resolveLocal(expr, expr.token);
         return null;
     }
@@ -275,5 +287,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 enum FunctionType {
     NONE,
     FUNCTION,
-    METHOD
+    METHOD,
+    INITIALIZER
+}
+
+enum ClassType {
+    NONE,
+    CLASS
 }
