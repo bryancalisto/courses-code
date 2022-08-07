@@ -244,6 +244,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        Object superclass = null;
+
+        if (stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass);
+
+            if (!(superclass instanceof LoxClass)) {
+                throw new RuntimeError(stmt.superclass.name, "Superclass is expected to be a class");
+            }
+        }
+
         environment.define(stmt.name.lexeme, null);
 
         for (Stmt.Function method : stmt.methods) {
@@ -252,7 +262,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             methods.put(method.name.lexeme, function);
         }
 
-        LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+        LoxClass klass = new LoxClass(stmt.name.lexeme, (LoxClass) superclass, methods);
         environment.assign(stmt.name, klass);
 
         return null;

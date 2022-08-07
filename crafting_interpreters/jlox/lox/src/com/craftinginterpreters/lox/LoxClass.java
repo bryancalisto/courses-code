@@ -6,9 +6,11 @@ import java.util.Map;
 public class LoxClass implements LoxCallable {
     final String name;
     final Map<String, LoxFunction> methods;
+    final LoxClass superclass;
 
-    public LoxClass(String name, Map<String, LoxFunction> methods) {
+    public LoxClass(String name, LoxClass superclass, Map<String, LoxFunction> methods) {
         this.name = name;
+        this.superclass = superclass;
         this.methods = methods;
     }
 
@@ -16,7 +18,7 @@ public class LoxClass implements LoxCallable {
     public int arity() {
         LoxFunction init = findMethod("init");
 
-        if(init != null) {
+        if (init != null) {
             return init.arity();
         }
 
