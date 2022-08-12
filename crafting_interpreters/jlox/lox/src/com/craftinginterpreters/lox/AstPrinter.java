@@ -113,6 +113,11 @@ public class AstPrinter implements Expr.Visitor<String> {
     public String visitUnaryExpr(Expr.Unary expr) {
         return parenthesize(expr.operator.lexeme, expr.right);
     }
+
+    @Override
+    public String visitSuperExpr(Expr.Super expr) {
+        return null;
+    }
 }
 
 class AstPrinterRPN {

@@ -422,6 +422,13 @@ public class Parser {
             return new Expr.Grouping(expr);
         }
 
+        if (match(SUPER)) {
+            Token keyword = previous();
+            consume(DOT, "Expected '.' after 'super' .");
+            Token method = consume(IDENTIFIER, "Expected superclass method name after '.'");
+            return new Expr.Super(keyword, method);
+        }
+
         throw error(peek(), "Expected expression.");
     }
 

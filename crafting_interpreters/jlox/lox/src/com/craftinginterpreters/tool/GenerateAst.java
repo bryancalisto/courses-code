@@ -27,7 +27,8 @@ public class GenerateAst {
                     "This       : Token token",
                     "Get        : Expr object, Token name",
                     "Set        : Expr object, Token name, Expr value",
-                    "Unary      : Token operator, Expr right"
+                    "Unary      : Token operator, Expr right",
+                    "Super      : Token keyword, Token method"
             ));
 
             defineAst(outputDir, "Stmt", Arrays.asList(

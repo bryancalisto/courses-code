@@ -1,13 +1,17 @@
 package com.craftinginterpreters.lox;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
+
+import static com.craftinginterpreters.lox.TokenType.*;
 
 class VariableState {
     public VariableState(Token token) {
         this.token = token;
+    }
+
+    public VariableState(Token token, boolean initialized) {
+        this.token = token;
+        this.initialized = initialized;
     }
 
     Token token;
@@ -21,9 +25,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Stack<Map<String, VariableState>> scopes = new Stack();
     private FunctionType currentFunction = FunctionType.NONE;
     private ClassType currentClass = ClassType.NONE;
+    Set<TokenType> notReadRequiredTokens = new HashSet<>();
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
+        notReadRequiredTokens.add(THIS);
+        notReadRequiredTokens.add(SUPER);
     }
 
     @Override
@@ -77,11 +84,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.name);
 
         if (stmt.superclass != null) {
+            currentClass = ClassType.SUBCLASS;
             if (stmt.superclass.name.lexeme.equals(stmt.name.lexeme)) {
                 Lox.error(stmt.superclass.name, "A class cannot inherit from itself");
             }
 
             resolve(stmt.superclass);
+        }
+
+        if (stmt.superclass != null) {
+            beginScope();
+            scopes.peek().put("super", new VariableState(new Token(TokenType.SUPER, "super", null, stmt.name.line), true));
         }
 
         beginScope();
@@ -97,6 +110,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         endScope();
+
+        if (stmt.superclass != null) endScope();
 
         currentClass = enclosingClass;
         return null;
@@ -214,6 +229,18 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitSuperExpr(Expr.Super expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Cannot use 'super' outside a class");
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Lox.error(expr.keyword, "Cannot use 'super' in a class without superclass");
+        }
+
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
+
     public void resolve(List<Stmt> statements) {
         for (Stmt stmt : statements) {
             resolve(stmt);
@@ -222,7 +249,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         // If a local variable was not used, report error
         for (int i = 0; i < scopes.size(); i++) {
             for (VariableState varState : scopes.get(i).values()) {
-                if (!varState.read) {
+                if (!varState.read && !notReadRequiredTokens.contains(varState.token.type)) {
                     Lox.error(varState.token, "Variable " + varState.token.lexeme + " is not being used. Remove it");
                 }
             }
@@ -301,5 +328,6 @@ enum FunctionType {
 
 enum ClassType {
     NONE,
-    CLASS
+    CLASS,
+    SUBCLASS
 }
