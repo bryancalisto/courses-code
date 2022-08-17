@@ -6,6 +6,7 @@ set(SOURCES
   src/chunk.c
   src/main.c
   src/memory.c
+  src/debug.c
 )
 
 add_executable(clox ${SOURCES})
