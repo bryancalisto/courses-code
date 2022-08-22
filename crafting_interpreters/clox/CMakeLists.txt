@@ -4,9 +4,10 @@ project(clox)
 
 set(SOURCES
   src/chunk.c
+  src/debug.c
   src/main.c
   src/memory.c
-  src/debug.c
+  src/value.c
 )
 
 add_executable(clox ${SOURCES})
