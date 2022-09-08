@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#define MAX_CONSTANT_INDEX 16777215 // 24 bits
+
 typedef double Value;
 
 typedef struct
