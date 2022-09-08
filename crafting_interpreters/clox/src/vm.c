@@ -1,6 +1,7 @@
 #include "common.h"
 #include "vm.h"
 #include "stdio.h"
+#include "debug.h"
 
 VM vm;
 
@@ -22,6 +23,10 @@ static InterpretResult run()
 
   for (;;)
   {
+#ifdef DEBUG_TRACE_EXECUTION
+    disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+#endif
+
     uint8_t instruction;
     switch (instruction = READ_BYTE())
     {
