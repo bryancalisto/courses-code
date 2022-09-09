@@ -5,11 +5,30 @@
 
 VM vm;
 
-void initVM() {}
+static void resetStack()
+{
+  vm.stackTop = vm.stack;
+}
+
+void initVM()
+{
+  resetStack();
+}
 
 void freeVM() {}
 
-InterpretResult interpretChunk(Chunk *chunk)
+void push(Value value)
+{
+  *vm.stackTop = value;
+  vm.stackTop++;
+}
+
+Value pop()
+{
+  return *(--vm.stackTop);
+}
+
+InterpretResult interpret(Chunk *chunk)
 {
   vm.chunk = chunk;
   vm.ip = chunk->code;
