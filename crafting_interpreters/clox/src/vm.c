@@ -28,13 +28,6 @@ Value pop()
   return *(--vm.stackTop);
 }
 
-InterpretResult interpret(Chunk *chunk)
-{
-  vm.chunk = chunk;
-  vm.ip = chunk->code;
-  return run();
-}
-
 static InterpretResult run()
 {
 #define READ_BYTE() (*vm.ip++)
@@ -44,6 +37,17 @@ static InterpretResult run()
   {
 #ifdef DEBUG_TRACE_EXECUTION
     disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+
+    printf("     ");
+
+    for (Value *slot = vm.stack; slot < vm.stackTop; slot++)
+    {
+      printf("[ ");
+      printValue(*slot);
+      printf(" ]");
+    }
+
+    printf("\n");
 #endif
 
     uint8_t instruction;
@@ -51,10 +55,10 @@ static InterpretResult run()
     {
     case OP_CONSTANT:
       Value constant = READ_CONSTANT();
-      printValue(constant);
-      printf("\n");
+      push(constant);
       break;
     case OP_RETURN:
+      // printValue(pop());
       return INTERPRET_OK;
     default:
       return INTERPRET_RUNTIME_ERROR;
@@ -63,4 +67,11 @@ static InterpretResult run()
 
 #undef READ_BYTE
 #undef READ_CONSTANT
+}
+
+InterpretResult interpret(Chunk *chunk)
+{
+  vm.chunk = chunk;
+  vm.ip = chunk->code;
+  return run();
 }
