@@ -32,6 +32,15 @@ static InterpretResult run()
 {
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+// do-while is a trick to use multiple statements in a block without issues like if () double b = pop(); double a = pop().
+// where only the first statement would be attatched to the if.
+#define BINARY_OP(op) \
+  do                  \
+  {                   \
+    double b = pop(); \
+    double a = pop(); \
+    push(a op b);     \
+  } while (false)
 
   for (;;)
   {
@@ -53,6 +62,18 @@ static InterpretResult run()
     uint8_t instruction;
     switch (instruction = READ_BYTE())
     {
+    case OP_ADD:
+      BINARY_OP(+);
+      break;
+    case OP_SUBTRACT:
+      BINARY_OP(-);
+      break;
+    case OP_MULTIPLY:
+      BINARY_OP(*);
+      break;
+    case OP_DIVIDE:
+      BINARY_OP(/);
+      break;
     case OP_CONSTANT:
       Value constant = READ_CONSTANT();
       push(constant);
@@ -68,6 +89,7 @@ static InterpretResult run()
     }
   }
 
+#undef BINARY_OP
 #undef READ_BYTE
 #undef READ_CONSTANT
 }

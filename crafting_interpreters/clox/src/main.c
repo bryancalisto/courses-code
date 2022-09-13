@@ -9,13 +9,12 @@ int main(int argc, char *argv[])
   Chunk chunk;
   initChunk(&chunk);
 
-  for (int i = 0; i <= 2; i++)
-  {
-    writeConstant(&chunk, i, 1);
-  }
-
+  writeConstant(&chunk, 3.4, 1);
+  writeConstant(&chunk, 5.6, 1);
+  writeChunk(&chunk, OP_ADD, 1);
+  writeConstant(&chunk, 2, 1);
+  writeChunk(&chunk, OP_DIVIDE, 2);
   writeChunk(&chunk, OP_NEGATE, 2);
-
   writeChunk(&chunk, OP_RETURN, 2);
 
   interpret(&chunk);

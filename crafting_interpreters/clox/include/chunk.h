@@ -6,6 +6,10 @@
 
 typedef enum
 {
+  OP_ADD,
+  OP_SUBTRACT,
+  OP_MULTIPLY,
+  OP_DIVIDE,
   OP_CONSTANT,
   OP_CONSTANT_LONG,
   OP_NEGATE,
