@@ -14,8 +14,10 @@ int main(int argc, char *argv[])
     writeConstant(&chunk, i, 1);
   }
 
+  writeChunk(&chunk, OP_NEGATE, 2);
+
   writeChunk(&chunk, OP_RETURN, 2);
-  // disassembleChunk(&chunk, "Test chunk");
+
   interpret(&chunk);
 
   freeVM();
