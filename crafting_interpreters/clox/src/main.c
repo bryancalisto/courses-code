@@ -1,9 +1,13 @@
 #include "common.h"
 #include "chunk.h"
 #include "vm.h"
+#include <time.h>
+#include "utils.h"
 
 int main(int argc, char *argv[])
 {
+  TimeDebug programTime = initTimeDebug("main");
+
   initVM();
 
   Chunk chunk;
@@ -23,5 +27,6 @@ int main(int argc, char *argv[])
 
   freeChunk(&chunk);
 
+  printTimeDebug(programTime);
   return 0;
 }

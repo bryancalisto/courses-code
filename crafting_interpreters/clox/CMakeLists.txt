@@ -7,6 +7,7 @@ set(SOURCES
   src/debug.c
   src/main.c
   src/memory.c
+  src/utils.c
   src/value.c
   src/vm.c
 )
