@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>>
+#include <stdlib.h>
 #include <string.h>
 
 #include "common.h"
@@ -26,7 +26,9 @@ static void repl()
 
 static char *readFile(const char *path)
 {
-  FILE *file = fopen(path, "rb");
+  FILE *file;
+
+  fopen_s(&file, path, "rb");
 
   if (file == NULL)
   {
