@@ -1,7 +1,7 @@
 # This script does:
 # 1. Configure cmake environment if it has not been configured yet.
 # 2. Build the project.
-# 3. Run the project.
+# 3. Run the project if 'run' flag is passed.
 
 $root_dir = $pwd
 $build_dir = "build"
@@ -17,4 +17,6 @@ If (!(test-path -PathType container $build_dir)) {
 
 cmake --build $build_dir
 
-Invoke-Expression ./$build_dir/Debug/clox.exe
+If ($args[1] -eq 'run') {
+  Invoke-Expression ./$build_dir/Debug/clox.exe
+}
