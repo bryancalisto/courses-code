@@ -6,6 +6,10 @@
 #include "scanner.h"
 #include "vm.h"
 
+#ifdef DEBUG_PRINT_CODE
+#include "debug.h"
+#endif
+
 typedef struct
 {
   Token current;
@@ -148,6 +152,13 @@ static void emitConstant(Value value)
 static void endCompiler()
 {
   emitReturn();
+
+#ifdef DEBUG_PRINT_CODE
+  if (!parser.hadError)
+  {
+    disassembleChunk(currentChunk(), "code");
+  }
+#endif
 }
 
 static void expression();
@@ -209,16 +220,6 @@ static void unary()
     return;
   }
 }
-
-// DELETE THIS LATER - It's just to keep it close why writing 'rules'
-// typedef void (*ParseFn)();
-
-// typedef struct
-// {
-//   ParseFn prefix;
-//   ParseFn infix;
-//   Precedence precedence;
-// } ParseRule;
 
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, NULL, PREC_NONE},

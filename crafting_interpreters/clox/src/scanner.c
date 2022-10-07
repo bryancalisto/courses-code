@@ -136,7 +136,7 @@ static Token string()
   return makeToken(TOKEN_STRING);
 }
 
-static void skiWhitespace()
+static void skipWhitespace()
 {
   for (;;)
   {
@@ -167,7 +167,7 @@ static void skiWhitespace()
       }
       break;
     default:
-      break;
+      return;
     }
   }
 }
@@ -253,7 +253,7 @@ static Token identifier()
 
 Token scanToken()
 {
-  skiWhitespace();
+  skipWhitespace();
   scanner.start = scanner.current;
 
   if (isAtEnd())
