@@ -263,8 +263,27 @@ ParseRule rules[] = {
     [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
 };
 
-static void
-parsePrecedence(Precedence presedence) {}
+static void parsePrecedence(Precedence precedence)
+{
+  advance();
+
+  ParseFn prefixRule = getRule(parser.previous.type)->prefix;
+
+  if (prefixRule == NULL)
+  {
+    error("Expected expression.");
+    return;
+  }
+
+  prefixRule();
+
+  while (precedence <= getRule(parser.current.type)->precedence)
+  {
+    advance();
+    ParseFn infixRule = getRule(parser.previous.type)->infix;
+    infixRule();
+  }
+}
 
 static ParseRule *getRule(TokenType type)
 {
