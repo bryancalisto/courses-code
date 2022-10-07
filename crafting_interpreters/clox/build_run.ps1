@@ -17,6 +17,11 @@ If (!(test-path -PathType container $build_dir)) {
 
 cmake --build $build_dir
 
-If ($args[1] -eq 'run') {
-  Invoke-Expression ./$build_dir/Debug/clox.exe
+If ($args[0] -eq 'run') {
+  If($args[1]) {
+    Invoke-Expression ./$build_dir/Debug/clox.exe $args[1]
+  }
+  Else {
+    Invoke-Expression ./$build_dir/Debug/clox.exe
+  }
 }
