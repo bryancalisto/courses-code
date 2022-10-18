@@ -10,6 +10,7 @@ set(SOURCES
   src/debug.c
   src/main.c
   src/memory.c
+  src/object.c
   src/scanner.c
   src/utils.c
   src/value.c
