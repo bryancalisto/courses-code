@@ -33,9 +33,13 @@ static void runtimeError(const char *format, ...)
 void initVM()
 {
   resetStack();
+  vm.objects = NULL;
 }
 
-void freeVM() {}
+void freeVM()
+{
+  freeObjects();
+}
 
 void push(Value value)
 {
