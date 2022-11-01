@@ -12,6 +12,7 @@ set(SOURCES
   src/memory.c
   src/object.c
   src/scanner.c
+  src/table.c
   src/utils.c
   src/value.c
   src/vm.c
