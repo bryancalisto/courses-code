@@ -182,8 +182,12 @@ static InterpretResult run()
 
       *(vm.stackTop - 1) = NUMBER_VAL(AS_NUMBER(*(vm.stackTop - 1)) * -1);
       break;
-    case OP_RETURN:
+    case OP_PRINT:
       printValue(pop());
+      printf("\n");
+      break;
+    case OP_RETURN:
+      // Exit interpreter
       return INTERPRET_OK;
     default:
       return INTERPRET_RUNTIME_ERROR;
