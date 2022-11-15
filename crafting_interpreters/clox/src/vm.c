@@ -182,6 +182,9 @@ static InterpretResult run()
 
       *(vm.stackTop - 1) = NUMBER_VAL(AS_NUMBER(*(vm.stackTop - 1)) * -1);
       break;
+    case OP_POP:
+      pop();
+      break;
     case OP_PRINT:
       printValue(pop());
       printf("\n");

@@ -20,6 +20,7 @@ typedef enum
   OP_CONSTANT_LONG,
   OP_NOT,
   OP_NEGATE,
+  OP_POP,
   OP_PRINT,
   OP_RETURN
 } OpCode;
