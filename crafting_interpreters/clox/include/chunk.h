@@ -21,6 +21,7 @@ typedef enum
   OP_NOT,
   OP_NEGATE,
   OP_POP,
+  OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_PRINT,
   OP_RETURN
