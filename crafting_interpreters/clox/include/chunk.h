@@ -20,6 +20,7 @@ typedef enum
   OP_TRUE,
   OP_FALSE,
   OP_CONSTANT_LONG,
+  OP_LOOP,
   OP_NOT,
   OP_NEGATE,
   OP_POP,
