@@ -31,7 +31,7 @@ static ObjString *allocateString(char *chars, int length, uint32_t hash)
   return string;
 }
 
-static ObjFunction *newFunction()
+ObjFunction *newFunction()
 {
   ObjFunction *function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
   function->arity = 0;
@@ -85,6 +85,12 @@ ObjString *copyString(const char *chars, int length)
 
 void printFunction(ObjFunction *function)
 {
+  if (function->name == NULL)
+  {
+    printf("<script>");
+    return;
+  }
+
   printf("<fn %s>", function->name->chars);
 }
 
@@ -96,7 +102,7 @@ void printObject(Value value)
     printf("%s", AS_CSTRING(value));
     break;
   case OBJ_FUNCTION:
-    printf("%s", AS_FUNCTION(value));
+    printf("%s", AS_FUNCTION(value)->name->chars);
     break;
   default:
     break;
