@@ -102,7 +102,7 @@ void printObject(Value value)
     printf("%s", AS_CSTRING(value));
     break;
   case OBJ_FUNCTION:
-    printf("%s", AS_FUNCTION(value)->name->chars);
+    printFunction("%s", AS_FUNCTION(value));
     break;
   default:
     break;
