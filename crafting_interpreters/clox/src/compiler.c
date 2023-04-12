@@ -57,8 +57,9 @@ typedef enum
   TYPE_SCRIPT
 } FunctionType;
 
-typedef struct
+typedef struct Compiler
 {
+  struct Compiler *enclosing;
   ObjFunction *function;
   FunctionType type;
   Local locals[UINT8_COUNT];
@@ -227,12 +228,19 @@ static void patchJump(int offset)
 
 static void initCompiler(Compiler *compiler, FunctionType type)
 {
+  printf("CURRENT is %d\n", current == NULL);
+  compiler->enclosing = current;
   compiler->function = NULL;
   compiler->type = type;
   compiler->localCount = 0;
   compiler->scopeDepth = 0;
   compiler->function = newFunction();
   current = compiler;
+
+  if (type != TYPE_SCRIPT)
+  {
+    current->function->name = copyString(parser.previous.start, parser.previous.length);
+  }
 
   Local *local = &current->locals[current->localCount++];
   local->depth = 0;
@@ -252,6 +260,7 @@ static ObjFunction *endCompiler()
   }
 #endif
 
+  current = current->enclosing; // HERE IS THE BUG. enclosing is NULL and that gets assigned to current, which will break in currentChunk because it's NULL
   return function;
 }
 
@@ -366,6 +375,11 @@ static uint8_t parseVariable(const char *errorMessage)
 
 static void markInitialized()
 {
+  if (current->scopeDepth == 0)
+  {
+    return;
+  }
+
   current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
@@ -627,6 +641,47 @@ static void block()
   consume(TOKEN_RIGHT_BRACE, "Expected '}' after block.");
 }
 
+static void function(FunctionType type)
+{
+  Compiler compiler;
+  initCompiler(&compiler, type);
+  beginScope();
+
+  consume(TOKEN_LEFT_PAREN, "Expected '(' after function name");
+
+  if (!check(TOKEN_RIGHT_PAREN))
+  {
+    do
+    {
+      current->function->arity++;
+
+      if (current->function->arity > 255)
+      {
+        errorAtCurrent("Cannot pass more than 255 arguments into function");
+      }
+
+      uint8_t constant = parseVariable("Expected parameter name");
+      defineVariable(constant);
+    } while (match(TOKEN_COMMA));
+  }
+
+  consume(TOKEN_RIGHT_PAREN, "Expected ')' after list of parameters");
+  consume(TOKEN_LEFT_BRACE, "Expected '{' after parameters");
+
+  block();
+
+  ObjFunction *function = endCompiler();
+  emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
+}
+
+static void funDeclaration()
+{
+  uint8_t global = parseVariable("Expected function name");
+  markInitialized();
+  function(TYPE_FUNCTION);
+  defineVariable(global);
+}
+
 static void varDeclaration()
 {
   uint8_t global = parseVariable("Expected variable name.");
@@ -795,7 +850,11 @@ void synchronize()
 
 static void declaration()
 {
-  if (match(TOKEN_VAR))
+  if (match(TOKEN_FUN))
+  {
+    funDeclaration();
+  }
+  else if (match(TOKEN_VAR))
   {
     varDeclaration();
   }
@@ -856,8 +915,6 @@ ObjFunction *compile(const char *source)
   {
     declaration();
   }
-
-  endCompiler();
 
   ObjFunction *function = endCompiler();
   return parser.hadError ? NULL : function;
