@@ -327,6 +327,7 @@ static InterpretResult run()
       break;
     case OP_RETURN:
       // Exit interpreter
+      pop();
       return INTERPRET_OK;
     default:
       return INTERPRET_RUNTIME_ERROR;
