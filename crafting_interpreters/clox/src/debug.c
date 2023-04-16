@@ -71,6 +71,8 @@ int disassembleInstruction(Chunk *chunk, int offset)
   {
   case OP_ADD:
     return simpleInstruction("OP_ADD", offset);
+  case OP_CALL:
+    return byteInstruction("OP_CALL", chunk, offset);
   case OP_SUBTRACT:
     return simpleInstruction("OP_SUBTRACT", offset);
   case OP_MULTIPLY:

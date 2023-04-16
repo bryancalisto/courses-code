@@ -7,6 +7,7 @@
 typedef enum
 {
   OP_ADD,
+  OP_CALL,
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
