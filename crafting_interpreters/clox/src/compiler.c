@@ -826,6 +826,24 @@ static void printStatement()
   emitByte(OP_PRINT);
 }
 
+static void returnStatement()
+{
+  if (current->type == TYPE_SCRIPT)
+  {
+    error("Can't return from outside of a function");
+  }
+  if (match(TOKEN_SEMICOLON))
+  {
+    emitReturn();
+  }
+  else
+  {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expected ';' after return value");
+    emitByte(OP_RETURN);
+  }
+}
+
 static void whileStatement()
 {
   int loopStart = currentChunk()->count;
@@ -920,6 +938,10 @@ static void statement()
     beginScope();
     block();
     endScope();
+  }
+  else if (match(TOKEN_RETURN))
+  {
+    returnStatement();
   }
   else
   {
